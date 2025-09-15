@@ -7,4 +7,6 @@ import org.springframework.data.domain.Pageable;
 public interface TripService {
 
     Page<Trip> getTripFollowPage(Pageable pageable);
+
+    Trip createTrip(Trip trip, String email);
 }

@@ -37,10 +37,9 @@ public class TicketController {
     public ResponseEntity<BaseResponseDto<Ticket>> bookTicket(@RequestBody Map<String, String> request) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName(); // Lấy userId từ JWT
-        User user = userService.getUserByEmail(email);
         Long tripId = Long.parseLong(request.get("tripId"));
         String seatNumber = request.get("seatNumber");
-        Ticket bookTicket = ticketService.bookTicket(user.getId(), tripId, seatNumber);
+        Ticket bookTicket = ticketService.bookTicket(email, tripId, seatNumber);
         return ResponseEntity.ok(BaseResponseDto.success(200, "Post Success", bookTicket));
     }
 }

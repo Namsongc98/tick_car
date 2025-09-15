@@ -37,21 +37,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        String username = null;
+        String email = null;
         String jwtToken = null;
         try {
             // Lấy token từ header Authorization: Bearer xxx
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwtToken = authHeader.substring(7);
                 if (jwtUtil.validateToken(jwtToken)) {
-                    username = jwtUtil.extractUsername(jwtToken);
+                    email = jwtUtil.extractEmail(jwtToken);
                 }
             }
 
             // Nếu token hợp lệ và chưa có authentication
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(username, null, null);
+                        new UsernamePasswordAuthenticationToken(email, null, null);
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

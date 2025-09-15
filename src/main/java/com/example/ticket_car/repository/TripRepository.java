@@ -6,5 +6,5 @@ import com.example.ticket_car.entity.Trip;
 import java.util.Optional;
 
 public interface TripRepository extends JpaRepository<Trip, Long> {
-    Optional<Trip> findByTripId(Long id);
+    Optional<Trip> findById(Long id);
 }

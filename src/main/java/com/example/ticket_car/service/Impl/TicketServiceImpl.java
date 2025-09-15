@@ -38,9 +38,9 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket bookTicket(Long userId, Long tripId, String seatNumber) {
+    public Ticket bookTicket(String email, Long tripId, String seatNumber) {
     // Kiểm tra user tồn tại và có role CUSTOMER
-        User user = userRepository.findById(userId)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (user.getRole() != Role.CUSTOMER) {
             throw new AccessDeniedException("Only CUSTOMER can book tickets");

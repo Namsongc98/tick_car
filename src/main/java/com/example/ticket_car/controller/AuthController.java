@@ -4,6 +4,7 @@ package com.example.ticket_car.controller;
 import com.example.ticket_car.Dto.baseResponseDto.BaseResponseDto;
 import com.example.ticket_car.Dto.request.UserRequestDto;
 import com.example.ticket_car.Dto.response.TokenResponse;
+import com.example.ticket_car.anotation.NoAuth;
 import com.example.ticket_car.service.AuthService;
 import com.example.ticket_car.entity.User;
 
@@ -30,6 +31,7 @@ public class AuthController {
     private JwtUtil jwtUtil;
 
     @PostMapping("/register")
+    @NoAuth
     public ResponseEntity<BaseResponseDto<TokenResponse>> register(@Valid @RequestBody UserRequestDto req){
         User user = new User();
         user.setName(req.getName());
@@ -47,13 +49,12 @@ public class AuthController {
     }
 
     @PostMapping("/login")
+    @NoAuth
     public ResponseEntity<BaseResponseDto<TokenResponse>> login(@Valid @RequestBody UserRequestDto req){
+        System.out.println(req);
         User user = new User();
-        user.setName(req.getName());
         user.setEmail(req.getEmail());
-        user.setPhone(req.getPhone());
         user.setPassword(req.getPassword());
-        user.setRole(req.getRole());
         user.setCreatedAt(Instant.now());
         User loginUser = authService.login(req);
         String accessToken = jwtUtil.generateAccessToken(loginUser.getEmail());
@@ -61,5 +62,4 @@ public class AuthController {
         TokenResponse token = new TokenResponse(accessToken, refreshToken, loginUser);
         return ResponseEntity.ok(BaseResponseDto.success(200,"Get successfully",token));
     }
-
 }
