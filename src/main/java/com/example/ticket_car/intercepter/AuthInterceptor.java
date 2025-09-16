@@ -35,7 +35,6 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Kiểm tra annotation @NoAuth
         NoAuth noAuth = handlerMethod.getMethodAnnotation(NoAuth.class);
-        System.out.println("preHandle");
         if (noAuth == null) {
             noAuth = handlerMethod.getBeanType().getAnnotation(NoAuth.class);
         }
@@ -45,12 +44,15 @@ public class AuthInterceptor implements HandlerInterceptor {
 
         // Lấy token từ header
         String authHeader = request.getHeader("Authorization");
+        System.out.println(authHeader);
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwtToken = authHeader.substring(7);
+            System.out.println(jwtUtil.validateToken(jwtToken));
             if (jwtUtil.validateToken(jwtToken)) {
-                String email = jwtUtil.extractEmail(jwtToken);
+                Long userId = jwtUtil.extractUserId(jwtToken);
                 // Ở đây anh có thể set vào request attribute để dùng tiếp
-                request.setAttribute("email", email);
+                System.out.println(userId);
+                request.setAttribute("email", userId);
                 return true;
             }
         }

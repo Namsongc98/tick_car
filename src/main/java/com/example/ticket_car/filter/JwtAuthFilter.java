@@ -8,6 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -37,21 +41,29 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        String email = null;
+        Long userId = null;
         String jwtToken = null;
         try {
             // Lấy token từ header Authorization: Bearer xxx
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwtToken = authHeader.substring(7);
+                System.out.println("jwtToken");
+                System.out.println(jwtToken);
+                System.out.println(jwtUtil.validateToken(jwtToken));
                 if (jwtUtil.validateToken(jwtToken)) {
-                    email = jwtUtil.extractEmail(jwtToken);
+                    userId = jwtUtil.extractUserId(jwtToken);
+                    System.out.println(userId);
                 }
             }
 
             // Nếu token hợp lệ và chưa có authentication
-            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            System.out.println(userId != null && SecurityContextHolder.getContext().getAuthentication() == null);
+            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                List<GrantedAuthority> authorities =
+                        Collections.singletonList(new SimpleGrantedAuthority("ADMIN"));
+
                 UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(email, null, null);
+                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
 
                 authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);

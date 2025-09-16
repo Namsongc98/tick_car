@@ -1,6 +1,7 @@
 package com.example.ticket_car.controller;
 
 import com.example.ticket_car.Dto.baseResponseDto.BaseResponseDto;
+import com.example.ticket_car.anotation.NoAuth;
 import com.example.ticket_car.entity.Trip;
 import com.example.ticket_car.service.TripService;
 import org.springframework.security.core.Authentication;
@@ -26,6 +27,7 @@ public class TripController {
     }
 
     @PostMapping
+    @NoAuth
     ResponseEntity<BaseResponseDto<Trip>> createTrip(@RequestBody Trip trip){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();

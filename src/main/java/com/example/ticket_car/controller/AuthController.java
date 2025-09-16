@@ -34,16 +34,14 @@ public class AuthController {
     @NoAuth
     public ResponseEntity<BaseResponseDto<TokenResponse>> register(@Valid @RequestBody UserRequestDto req){
         User user = new User();
-        user.setName(req.getName());
         user.setEmail(req.getEmail());
-        user.setPhone(req.getPhone());
         user.setPassword(req.getPassword());
         user.setRole(req.getRole());
         user.setCreatedAt(Instant.now());
         User savedUser = authService.register(req);
-        String accessToken = jwtUtil.generateAccessToken(savedUser.getEmail());
-        String refreshToken = jwtUtil.generateRefreshToken(savedUser.getEmail());
-        TokenResponse token = new TokenResponse(accessToken, refreshToken, savedUser);
+        String accessToken = jwtUtil.generateAccessToken(savedUser.getId());
+        String refreshToken = jwtUtil.generateRefreshToken(savedUser.getId());
+        TokenResponse token = new TokenResponse(accessToken, refreshToken);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(BaseResponseDto.success(201, "Register successfully", token));
     }
@@ -57,9 +55,9 @@ public class AuthController {
         user.setPassword(req.getPassword());
         user.setCreatedAt(Instant.now());
         User loginUser = authService.login(req);
-        String accessToken = jwtUtil.generateAccessToken(loginUser.getEmail());
-        String refreshToken = jwtUtil.generateRefreshToken(loginUser.getEmail());
-        TokenResponse token = new TokenResponse(accessToken, refreshToken, loginUser);
+        String accessToken = jwtUtil.generateAccessToken(loginUser.getId());
+        String refreshToken = jwtUtil.generateRefreshToken(loginUser.getId());
+        TokenResponse token = new TokenResponse(accessToken, refreshToken);
         return ResponseEntity.ok(BaseResponseDto.success(200,"Get successfully",token));
     }
 }
