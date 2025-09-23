@@ -1,6 +1,7 @@
 package com.example.ticket_car.controller;
 
 import com.example.ticket_car.Dto.baseResponseDto.BaseResponseDto;
+import com.example.ticket_car.Dto.response.TripResponseDto;
 import com.example.ticket_car.anotation.NoAuth;
 import com.example.ticket_car.entity.Trip;
 import com.example.ticket_car.service.TripService;
@@ -26,12 +27,13 @@ public class TripController {
         return  ResponseEntity.ok(BaseResponseDto.success(200, "Get successfully",tripPage));
     }
 
-    @PostMapping
-    @NoAuth
+    @PostMapping("/create")
     ResponseEntity<BaseResponseDto<Trip>> createTrip(@RequestBody Trip trip){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String email = auth.getName();
-        Trip tripResponse =tripService.createTrip(trip, email);
+        String id = auth.getName();
+        Long IdUser = Long.parseLong(id);
+        System.out.println(id);
+        Trip tripResponse =tripService.createTrip(trip, IdUser);
         return ResponseEntity.ok(BaseResponseDto.success(200, "Post Success", tripResponse));
     }
 

@@ -43,7 +43,11 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // tắt CSRF cho REST API
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/**").permitAll() // login, register không cần token
+                        .requestMatchers("/api/auth/**").permitAll() // login, register không cần token
+                        .requestMatchers("/**").permitAll()
+                        .requestMatchers("/avatars/**").permitAll()
+                        .requestMatchers("/favicon.ico").permitAll()
+                        .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                         .anyRequest().authenticated()                // các API khác cần JWT
                 )
                 .exceptionHandling(ex -> ex
@@ -60,16 +64,4 @@ public class SecurityConfig {
         return authConfig.getAuthenticationManager();
     }
 
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return email -> {
-//            User user = userRepository.findByEmail(email)
-//                    .orElseThrow(() -> new IllegalArgumentException("User not found"));
-//            return org.springframework.security.core.userdetails.User
-//                    .withUsername(user.getEmail())
-//                    .password(user.getPassword())
-//                    .roles(user.getRole().name())
-//                    .build();
-//        };
-//    }
 }

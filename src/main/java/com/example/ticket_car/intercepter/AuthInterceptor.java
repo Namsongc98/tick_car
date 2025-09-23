@@ -42,6 +42,13 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true; // API public, bỏ qua check
         }
 
+        String path = request.getRequestURI();
+
+        // Ví dụ: bỏ qua auth cho ảnh avatar
+        if (path.startsWith("/avatars/") || path.equals("/login")) {
+            return true; // cho phép request đi tiếp
+        }
+
         // Lấy token từ header
         String authHeader = request.getHeader("Authorization");
         System.out.println(authHeader);
@@ -52,7 +59,7 @@ public class AuthInterceptor implements HandlerInterceptor {
                 Long userId = jwtUtil.extractUserId(jwtToken);
                 // Ở đây anh có thể set vào request attribute để dùng tiếp
                 System.out.println(userId);
-                request.setAttribute("email", userId);
+                request.setAttribute("id", userId);
                 return true;
             }
         }

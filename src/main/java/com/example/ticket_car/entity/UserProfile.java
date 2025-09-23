@@ -1,5 +1,6 @@
 package com.example.ticket_car.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -18,6 +19,7 @@ public class UserProfile {
     // Quan hệ 1-1 với User
     @OneToOne
     @JoinColumn(name = "user_id", nullable = false, unique = true)
+    @JsonIgnore
     private User user;
 
     @Column(length = 15)
@@ -26,5 +28,6 @@ public class UserProfile {
     @Column(length = 100)
     private String name;
 
+    @Column(length = 500)
     private String avatar; // link ảnh hoặc base64
 }

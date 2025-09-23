@@ -55,19 +55,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     System.out.println(userId);
                 }
             }
+            String path = request.getRequestURI();
+            System.out.println("Request path: " + path);
+
+            // Ví dụ: bỏ qua auth cho ảnh avatar
+            if (path.startsWith("/avatars/") || path.equals("/login")) {
+                filterChain.doFilter(request, response);
+            }else {
+                System.out.println(userId != null && SecurityContextHolder.getContext().getAuthentication() == null);
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    List<GrantedAuthority> authorities =
+                            Collections.singletonList(new SimpleGrantedAuthority("ADMIN"));
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
+            }
 
             // Nếu token hợp lệ và chưa có authentication
-            System.out.println(userId != null && SecurityContextHolder.getContext().getAuthentication() == null);
-            if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                List<GrantedAuthority> authorities =
-                        Collections.singletonList(new SimpleGrantedAuthority("ADMIN"));
 
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(userId, null, authorities);
-
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
             filterChain.doFilter(request, response);
         } catch (AccessDeniedException ex) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

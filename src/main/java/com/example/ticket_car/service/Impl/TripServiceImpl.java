@@ -30,8 +30,8 @@ public class TripServiceImpl implements TripService {
 
 
     @Override
-    public Trip createTrip(Trip trip, String email) {
-        User user = userRepository.findByEmail(email)
+    public Trip createTrip(Trip trip, Long id) {
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (user.getRole() != Role.STAFF && user.getRole() != Role.ADMIN) {
             throw new AccessDeniedException("Only STAFF or ADMIN can create trips");

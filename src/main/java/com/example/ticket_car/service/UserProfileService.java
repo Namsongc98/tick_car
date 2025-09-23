@@ -11,6 +11,8 @@ import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Getter
 @Setter
@@ -51,5 +53,27 @@ public class UserProfileService {
     public UserProfile getProfile(Long userId) {
         return userProfileRepository.findByUserId(userId)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
+    }
+
+    public UserProfile saveOrUpdateAvatar(Long userId, String avatarUrl) {
+        // tìm profile theo userId
+        Optional<UserProfile> optionalProfile = userProfileRepository.findByUserId(userId);
+
+        UserProfile profile;
+        if (optionalProfile.isPresent()) {
+            // update avatar nếu có
+            profile = optionalProfile.get();
+            profile.setAvatar(avatarUrl);
+        } else {
+            // nếu chưa có thì tạo mới
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            profile = new UserProfile();
+            profile.setUser(user);
+            profile.setAvatar(avatarUrl);
+        }
+
+        return userProfileRepository.save(profile);
     }
 }
