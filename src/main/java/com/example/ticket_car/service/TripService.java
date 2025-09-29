@@ -9,4 +9,6 @@ public interface TripService {
     Page<Trip> getTripFollowPage(Pageable pageable);
 
     Trip createTrip(Trip trip, Long id);
+
+    Trip updateTrip(Long id, Trip updatedTrip, Long idUser);
 }

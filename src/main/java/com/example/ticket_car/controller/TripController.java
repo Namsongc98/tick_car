@@ -34,7 +34,15 @@ public class TripController {
         Long IdUser = Long.parseLong(id);
         System.out.println(id);
         Trip tripResponse =tripService.createTrip(trip, IdUser);
-        return ResponseEntity.ok(BaseResponseDto.success(200, "Post Success", tripResponse));
+        return ResponseEntity.ok(BaseResponseDto.success(200, "Post Success", null));
+    }
+
+    @PutMapping("/{tripId}")
+    ResponseEntity<BaseResponseDto<Trip>> updateTrip(@PathVariable String tripId,  @RequestBody Trip tripUpdate){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String idUser = auth.getName();
+        Trip tripResponse = tripService.updateTrip(Long.parseLong(tripId) , tripUpdate, Long.parseLong(idUser));
+        return ResponseEntity.ok(BaseResponseDto.success(200, "Put Success", null));
     }
 
 }

@@ -38,9 +38,9 @@ public class TicketServiceImpl implements TicketService {
     }
 
     @Override
-    public Ticket bookTicket(String email, Long tripId, String seatNumber) {
+    public Ticket bookTicket(Long userId, Long tripId, String seatNumber) {
     // Kiểm tra user tồn tại và có role CUSTOMER
-        User user = userRepository.findByEmail(email)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         if (user.getRole() != Role.CUSTOMER) {
             throw new AccessDeniedException("Only CUSTOMER can book tickets");
@@ -74,4 +74,36 @@ public class TicketServiceImpl implements TicketService {
 
         return ticketRepository.save(ticket);
     }
+
+    @Override
+    public Page<Ticket> getTicketsByTripId(Long tripId, Pageable pageable, Long userId, Role role) {
+        if (role != Role.STAFF && role != Role.ADMIN) {
+            throw new AccessDeniedException("Only STAFF or ADMIN can view tickets by trip");
+        }
+        return ticketRepository.findByTripId(tripId, pageable);
+    }
+
+    @Override
+    public Ticket updateTicket(Long id, String seatNumber, TicketStatus status, Long userId, Role role) {
+        if (role != Role.STAFF && role != Role.ADMIN) {
+            throw new AccessDeniedException("Only STAFF or ADMIN can update tickets");
+        }
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        if (seatNumber != null && !seatNumber.equals(ticket.getSeatNumber())) {
+            // Kiểm tra ghế mới
+            if (ticketRepository.findByTripId(ticket.getTrip().getId(), Pageable.unpaged())
+                    .getContent().stream().anyMatch(t -> t.getSeatNumber().equals(seatNumber))) {
+                throw new IllegalStateException("New seat already booked");
+            }
+            ticket.setSeatNumber(seatNumber);
+        }
+        if (status != null) {
+            ticket.setStatus(status);
+        }
+        ticket.setUpdatedAt(Instant.now());
+        return ticketRepository.save(ticket);
+    }
+
+
 }

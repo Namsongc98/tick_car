@@ -40,4 +40,24 @@ public class TripServiceImpl implements TripService {
         trip.setUpdatedAt(Instant.now());
         return tripRepository.save(trip);
     }
+
+    public Trip updateTrip(Long id, Trip updatedTrip, Long idUser) {
+        User user = userRepository.findById(idUser)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        if (user.getRole() != Role.STAFF && user.getRole() != Role.ADMIN) {
+            throw new AccessDeniedException("Only STAFF or ADMIN can update trips");
+        }
+        Trip trip = tripRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Trip not found"));
+        trip.setRoute(updatedTrip.getRoute());
+        trip.setDepartureTime(updatedTrip.getDepartureTime());
+        trip.setArrivalTime(updatedTrip.getArrivalTime());
+        trip.setBusType(updatedTrip.getBusType());
+        trip.setTotalSeats(updatedTrip.getTotalSeats());
+        trip.setAvailableSeats(updatedTrip.getAvailableSeats());
+        trip.setPrice(updatedTrip.getPrice());
+        trip.setStatus(updatedTrip.getStatus());
+        trip.setUpdatedAt(Instant.now());
+        return tripRepository.save(trip);
+    }
 }

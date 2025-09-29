@@ -1,11 +1,15 @@
 package com.example.ticket_car.intercepter;
 
 import com.example.ticket_car.Dto.baseResponseDto.BaseResponseDto;
+import com.example.ticket_car.Enum.User.Role;
+import com.example.ticket_car.anotation.*;
+import com.example.ticket_car.entity.User;
+import com.example.ticket_car.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.example.ticket_car.anotation.NoAuth;
 import com.example.ticket_car.util.JwtUtil;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
@@ -13,6 +17,8 @@ import org.springframework.web.servlet.HandlerInterceptor;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Arrays;
 
 
 @Slf4j
@@ -25,6 +31,9 @@ public class AuthInterceptor implements HandlerInterceptor {
     @Autowired
     private ObjectMapper mapper;
 
+    @Autowired
+    private UserService userService;
+
     @Override
     public boolean preHandle(HttpServletRequest request,
                              HttpServletResponse response,
@@ -33,11 +42,28 @@ public class AuthInterceptor implements HandlerInterceptor {
             return true;
         }
 
+
         // Kiểm tra annotation @NoAuth
         NoAuth noAuth = handlerMethod.getMethodAnnotation(NoAuth.class);
+        AdminOnly adminOnly = handlerMethod.getMethodAnnotation(AdminOnly.class);
+        CustomerOnly customerOnly = handlerMethod.getMethodAnnotation(CustomerOnly.class);
+        StaffOnly staffOnly = handlerMethod.getMethodAnnotation(StaffOnly.class);
+
+        RoleRequired roleRequired = handlerMethod.getMethodAnnotation(RoleRequired.class);
+
         if (noAuth == null) {
             noAuth = handlerMethod.getBeanType().getAnnotation(NoAuth.class);
         }
+        if (adminOnly == null) {
+            adminOnly = handlerMethod.getBeanType().getAnnotation(AdminOnly.class);
+        }
+        if (customerOnly == null) {
+            customerOnly = handlerMethod.getBeanType().getAnnotation(CustomerOnly.class);
+        }
+        if (staffOnly == null) {
+            staffOnly = handlerMethod.getBeanType().getAnnotation(StaffOnly.class);
+        }
+
         if (noAuth != null) {
             return true; // API public, bỏ qua check
         }
@@ -45,7 +71,7 @@ public class AuthInterceptor implements HandlerInterceptor {
         String path = request.getRequestURI();
 
         // Ví dụ: bỏ qua auth cho ảnh avatar
-        if (path.startsWith("/avatars/") || path.equals("/login")) {
+        if (path.startsWith("/avatars/")) {
             return true; // cho phép request đi tiếp
         }
 
@@ -57,10 +83,20 @@ public class AuthInterceptor implements HandlerInterceptor {
             System.out.println(jwtUtil.validateToken(jwtToken));
             if (jwtUtil.validateToken(jwtToken)) {
                 Long userId = jwtUtil.extractUserId(jwtToken);
-                // Ở đây anh có thể set vào request attribute để dùng tiếp
-                System.out.println(userId);
-                request.setAttribute("id", userId);
-                return true;
+                User user = userService.getUserById(userId);
+                Role userRole = user.getRole();
+                boolean authorized =
+                        (adminOnly != null && userRole == Role.ADMIN)
+                                || (customerOnly != null && userRole == Role.CUSTOMER)
+                                || (staffOnly != null && userRole == Role.STAFF)
+                                ||  Arrays.asList(roleRequired.value()).contains(userRole);
+
+                if (authorized) {
+                    request.setAttribute("id", userId);
+                    return true;
+                } else {
+                    return false;
+                }
             }
         }
 
