@@ -1,5 +1,6 @@
 package com.example.ticket_car.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.List;
@@ -33,9 +34,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String name;
     private String email;
-    private String phone;
     private String password;
 
     @Enumerated(EnumType.STRING)
@@ -48,11 +47,15 @@ public class User {
     private Instant lastLogin;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Ticket> tickets;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonIgnore
     private List<Payment> payments;
+
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonIgnore
+    private UserProfile profile;
 
 }

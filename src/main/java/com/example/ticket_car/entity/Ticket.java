@@ -1,5 +1,6 @@
 package com.example.ticket_car.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -38,17 +39,17 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    @JsonBackReference
+    @JsonIgnore
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "trip_id")
-    @JsonBackReference
+    @JsonIgnore
     private Trip trip;
 
     @OneToOne
     @JoinColumn(name = "payment_id", referencedColumnName = "id")
-    @JsonManagedReference
+    @JsonIgnore
     private Payment payment;
 
 }

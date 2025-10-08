@@ -8,6 +8,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -16,6 +18,8 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -37,25 +41,42 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         final String authHeader = request.getHeader("Authorization");
 
-        String username = null;
+        Long userId = null;
         String jwtToken = null;
         try {
             // Lấy token từ header Authorization: Bearer xxx
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 jwtToken = authHeader.substring(7);
+                System.out.println("jwtToken");
+                System.out.println(jwtToken);
+                System.out.println(jwtUtil.validateToken(jwtToken));
                 if (jwtUtil.validateToken(jwtToken)) {
-                    username = jwtUtil.extractUsername(jwtToken);
+                    userId = jwtUtil.extractUserId(jwtToken);
+                    System.out.println(userId);
+                }
+            }
+            String path = request.getRequestURI();
+            System.out.println("Request path: " + path);
+
+            // Ví dụ: bỏ qua auth cho ảnh avatar
+            if (path.startsWith("/avatars/") || path.equals("/login")) {
+                filterChain.doFilter(request, response);
+            }else {
+                System.out.println(userId != null && SecurityContextHolder.getContext().getAuthentication() == null);
+                if (userId != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                    List<GrantedAuthority> authorities =
+                            Collections.singletonList(new SimpleGrantedAuthority("ADMIN"));
+
+                    UsernamePasswordAuthenticationToken authToken =
+                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
 
             // Nếu token hợp lệ và chưa có authentication
-            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-                UsernamePasswordAuthenticationToken authToken =
-                        new UsernamePasswordAuthenticationToken(username, null, null);
 
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
-            }
             filterChain.doFilter(request, response);
         } catch (AccessDeniedException ex) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

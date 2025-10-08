@@ -39,19 +39,13 @@ public class AuthServiceImpl implements AuthService {
         if(userRepository.existsByEmail(email)){
             throw new IllegalArgumentException("Email already exists");
         }
-        if(userRepository.existsByName(name)){
-            throw new IllegalArgumentException("Name already exists");
-        }
 
-        String phone = user.getPhone();
         String password = passwordEncoder.encode(user.getPassword());
         Role role = (user.getRole() == null) ? Role.CUSTOMER : user.getRole();
 
         try{
             User newUser = User.builder()
-                    .name(name)
                     .email(email)
-                    .phone(phone)
                     .password(password)
                     .role(role)
                     .createdAt(Instant.now())
@@ -60,8 +54,6 @@ public class AuthServiceImpl implements AuthService {
         }catch (Exception e){
             throw new RuntimeException(e);
         }
-
-
     }
 
     public User login(@Valid UserRequestDto user){

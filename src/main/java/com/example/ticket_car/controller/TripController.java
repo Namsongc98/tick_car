@@ -1,16 +1,18 @@
 package com.example.ticket_car.controller;
 
 import com.example.ticket_car.Dto.baseResponseDto.BaseResponseDto;
+import com.example.ticket_car.Dto.response.TripResponseDto;
+import com.example.ticket_car.anotation.NoAuth;
 import com.example.ticket_car.entity.Trip;
 import com.example.ticket_car.service.TripService;
+import org.springframework.security.core.Authentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/trip")
@@ -23,6 +25,24 @@ public class TripController {
     ResponseEntity<BaseResponseDto<Page<Trip>>> getTripFollowPage(@PageableDefault(size = 10) Pageable pageable){
         Page<Trip> tripPage = tripService.getTripFollowPage(pageable);
         return  ResponseEntity.ok(BaseResponseDto.success(200, "Get successfully",tripPage));
+    }
+
+    @PostMapping("/create")
+    ResponseEntity<BaseResponseDto<Trip>> createTrip(@RequestBody Trip trip){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String id = auth.getName();
+        Long IdUser = Long.parseLong(id);
+        System.out.println(id);
+        Trip tripResponse =tripService.createTrip(trip, IdUser);
+        return ResponseEntity.ok(BaseResponseDto.success(200, "Post Success", null));
+    }
+
+    @PutMapping("/{tripId}")
+    ResponseEntity<BaseResponseDto<Trip>> updateTrip(@PathVariable String tripId,  @RequestBody Trip tripUpdate){
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String idUser = auth.getName();
+        Trip tripResponse = tripService.updateTrip(Long.parseLong(tripId) , tripUpdate, Long.parseLong(idUser));
+        return ResponseEntity.ok(BaseResponseDto.success(200, "Put Success", null));
     }
 
 }
